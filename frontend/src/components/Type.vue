@@ -1,23 +1,28 @@
-<script>
-export default {
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+export default defineComponent({
     data() {
         return {
-            typedText: ""
+            typedText: "",
         }
     },
     methods: {
     },
     watch: {
-        typedText(oldTypedText, newTypedText) {
+        typedText(oldTypedText: string, newTypedText: string) {
             // based on assumption that this is called on each char / each change
+            let diff : number = Math.abs(oldTypedText.length - newTypedText.length);
             if (oldTypedText.length < newTypedText.length) {
-                console.log("+" + newTypedText.slice(-1))
+                console.log("+" + newTypedText.slice(-diff))
             } else {
-                console.log("-" + oldTypedText.slice(-1))
+                console.log("-" + oldTypedText.slice(-diff))
             }
         }
     }
-}
+})
+
 </script>
 <template>
     <div> Hello world </div>
