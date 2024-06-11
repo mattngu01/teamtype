@@ -43,7 +43,13 @@ export default defineComponent({
 
             if (firstMistake != -1) {
                 htmlWord += "<span style=\"color: green\">" + currentWord.slice(0, firstMistake) + "</span>" 
-                htmlWord += "<span style=\"background-color: red\">" + currentWord.slice(firstMistake, currentWord.length) + "</span>";
+                htmlWord += "<span style=\"background-color: red\">" 
+                
+                htmlWord += currentWord.slice(firstMistake, currentWord.length);
+                if (this.typedWord.length > currentWord.length) {
+                   htmlWord += this.typedWord.slice(currentWord.length, Math.min(15, this.typedWord.length));
+                }
+                htmlWord += "</span>";
             } else {
                 htmlWord += "<span style=\"color: green\">" + this.typedWord + "</span>";
                 htmlWord += currentWord.slice(this.typedWord.length, currentWord.length);
