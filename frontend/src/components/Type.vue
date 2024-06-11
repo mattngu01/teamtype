@@ -68,7 +68,11 @@ export default defineComponent({
             if (newTypedWord == this.quoteArray[this.currentWordIndex])  {
                 this.typedWord = "";
                 this.currentWordIndex++;
-                console.log("Finished word " + newTypedWord)
+                console.log("Finished word " + newTypedWord);
+
+                if (this.currentWordIndex == this.quoteArray.length) {
+                    alert("You finished the quote!");
+                }
             }
         }
     }
@@ -76,7 +80,13 @@ export default defineComponent({
 
 </script>
 <template>
-    <div> Hello world </div>
-    <div v-html="quoteHtml()"></div>
-    <input for="test" spellcheck="false" autocapitalize="off" autocomplete="off" v-model="typedWord" placeholder="Type here">
+    <section class="">
+        <blockquote class="block is-size-4-desktop">
+            <p v-html="quoteHtml()"></p>
+            <footer>
+                <cite>- author</cite>
+            </footer>
+        </blockquote>
+        <input class="block input" type="text" for="text" spellcheck="false" autocapitalize="off" autocomplete="off" v-model="typedWord" placeholder="Type here">
+    </section>
 </template>
