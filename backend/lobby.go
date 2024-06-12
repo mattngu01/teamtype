@@ -2,9 +2,34 @@ package main
 
 // https://github.com/gorilla/websocket/tree/main/examples/chat
 
-package backend
+import (
+	"log"
+	"net/http"
 
-import "github.com/segmentio/ksuid"
+	"github.com/segmentio/ksuid"
+)
+
+type LobbyManager struct {
+	lobbies map[ksuid.KSUID]*Lobby
+}
+
+func serveWs(w http.ResponseWriter, r *http.Request, lm *LobbyManager) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// is it okay for each client to have their own lobby on initial connection..?
+	lobby := newLobby()
+	go lobby.run()
+	client := &Client{socket: conn, input: make(chan string), lobby: lobby}
+	lm.lobbies[lobby.id] = lobby
+	log.Println("Created client & lobby")
+	log.Println("Sending register client msg to lobby", client.lobby.id)
+	client.lobby.register <- client
+}
 
 type Lobby struct {
 	race       *Race
@@ -30,12 +55,19 @@ func getQuote() string {
 
 func (l *Lobby) run() {
 	for {
+		if len(l.clients) == 0 {
+			return
+		}
+
 		select {
 		case client := <-l.register:
+			log.Println("Registered new client")
 			l.clients[client] = true
 		case client := <-l.unregister:
+			log.Println("Deregistered client")
 			delete(l.clients, client)
-			// remember to close any client channels
+			// remember to close websocket, as well as close goroutine channel to signal cleaning up goroutine
+			close(client.input)
 		}
 	}
 }
