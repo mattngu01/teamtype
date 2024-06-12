@@ -1,6 +1,6 @@
 // https://gamedev.stackexchange.com/questions/84387/how-should-i-store-game-data-in-a-game-server
 
-package backend
+package main
 
 // represents a quote and its respective progress to completion
 import "strings"

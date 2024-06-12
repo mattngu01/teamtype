@@ -1,3 +1,5 @@
+package main
+
 // https://github.com/gorilla/websocket/tree/main/examples/chat
 
 package backend
