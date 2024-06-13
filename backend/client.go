@@ -21,6 +21,15 @@ type Client struct {
 	lobby  *Lobby
 }
 
+func (c *Client) readRoutine() {
+	for {
+		select {
+		case msg, ok := <-c.input:
+			return
+		}
+	}
+}
+
 /*
 TODO:
 - going through workflow of creating/joining a lobby
