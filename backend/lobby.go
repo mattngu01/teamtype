@@ -23,16 +23,20 @@ func serveWs(w http.ResponseWriter, r *http.Request, lm *LobbyManager) {
 
 	// is it okay for each client to have their own lobby on initial connection..?
 	lobby := newLobby()
+	client := &Client{conn: conn, lobbyEvents: make(chan Event), lobby: lobby, clientEvents: make(chan Event)}
+	lobby.clients[client] = true
 	go lobby.run()
-	client := &Client{socket: conn, input: make(chan string), lobby: lobby}
 	lm.lobbies[lobby.id] = lobby
 	log.Println("Created client & lobby")
 	log.Println("Sending register client msg to lobby", client.lobby.id)
 	client.lobby.register <- client
+
+	go client.readRoutine()
+	go client.writeRoutine()
 }
 
 type Lobby struct {
-	race       *Race
+	race       *Race //represents game state
 	clients    map[*Client]bool
 	id         ksuid.KSUID
 	register   chan *Client
@@ -56,6 +60,7 @@ func getQuote() string {
 func (l *Lobby) run() {
 	for {
 		if len(l.clients) == 0 {
+			log.Println("Killing lobby routine, 0 clients")
 			return
 		}
 
@@ -67,7 +72,7 @@ func (l *Lobby) run() {
 			log.Println("Deregistered client")
 			delete(l.clients, client)
 			// remember to close websocket, as well as close goroutine channel to signal cleaning up goroutine
-			close(client.input)
+			close(client.lobbyEvents)
 		}
 	}
 }
