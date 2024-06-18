@@ -6,6 +6,8 @@ export default defineComponent({
         return {
             socket: null as WebSocket | null,
             lobbyId: "",
+            username: "",
+            players: [],
         }
     },
     mounted() {
@@ -22,6 +24,8 @@ export default defineComponent({
             let eventPayload = JSON.parse(event.data);
             if (eventPayload["type"] == "LobbyInfo") {
                 this.lobbyId = eventPayload.data["lobbyId"];
+                this.username = eventPayload.data["username"];
+                this.players = eventPayload.data["players"];
             }
         }
     },
@@ -30,4 +34,7 @@ export default defineComponent({
 
 <template>
 <p v-if="lobbyId">Lobby ID: {{ lobbyId }}</p>
+<p v-if="username">Username: {{ username }}</p>
+<p v-if="players">Players: {{ players }}</p>
+
 </template>

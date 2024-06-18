@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/gorilla/websocket"
 )
 
@@ -34,6 +35,11 @@ type Client struct {
 	lobbyEvents  chan Event //channel to pass events from client to lobby, where it maintains game state
 	lobby  *Lobby
 	clientEvents chan Event //channel to pass events from writer & reader goroutines, skipping Lobby when not needed
+	username string //usernames unique per lobby
+}
+
+func newClient(conn *websocket.Conn, lobby *Lobby) *Client {
+	return &Client{conn: conn, lobbyEvents: make(chan Event), lobby: lobby, clientEvents: make(chan Event), username: petname.Generate(3, "-")}
 }
 
 // at most one reader on a connection by executing all reads on this goroutine
@@ -67,7 +73,7 @@ func (c *Client) parseEvent(event *Event) {
 	log.Printf("Parsing event: %v", event)
 	switch event.Type {
 	case LobbyInfo:
-		c.clientEvents <- Event{Type: LobbyInfo, Data: map[string]interface{}{"lobbyId": c.lobby.id.String()}}
+		c.clientEvents <- Event{Type: LobbyInfo, Data: map[string]interface{}{"lobbyId": c.lobby.id.String(), "username": c.username, "players": c.lobby.getPlayerUsers()}}
 	}
 }
 
