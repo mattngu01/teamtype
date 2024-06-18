@@ -22,14 +22,12 @@ func serveWs(w http.ResponseWriter, r *http.Request, lm *LobbyManager) {
 	}
 
 	// is it okay for each client to have their own lobby on initial connection..?
-	lobby := newLobby()
-	client := newClient(conn, lobby)
-	lobby.clients[client] = true
+	client := newClient(conn)
+	lobby := newLobby(client)
+	client.lobby = lobby
 	go lobby.run()
 	lm.lobbies[lobby.id] = lobby
 	log.Println("Created client & lobby")
-	log.Println("Sending register client msg to lobby", client.lobby.id)
-	client.lobby.register <- client
 
 	go client.readRoutine()
 	go client.writeRoutine()
@@ -43,10 +41,13 @@ type Lobby struct {
 	unregister chan *Client
 }
 
-func newLobby() *Lobby {
+// requires first client since run() goroutine exits if there aren't any clients
+func newLobby(initialClient *Client) *Lobby {
+	clients := make(map[*Client]bool, 8)
+	clients[initialClient] = true
 	return &Lobby{
 		race:       newRace(getQuote()),
-		clients:    make(map[*Client]bool, 8),
+		clients:    clients,
 		id:         ksuid.New(),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
@@ -54,7 +55,7 @@ func newLobby() *Lobby {
 }
 
 func (l *Lobby) getPlayerUsers() []string {
-	usernames := make([]string, len(l.clients))
+	var usernames []string
 	for clientPtr := range l.clients {
 		usernames = append(usernames, clientPtr.username)
 	}

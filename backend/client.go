@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -38,12 +39,17 @@ type Client struct {
 	username string //usernames unique per lobby
 }
 
-func newClient(conn *websocket.Conn, lobby *Lobby) *Client {
-	return &Client{conn: conn, lobbyEvents: make(chan Event), lobby: lobby, clientEvents: make(chan Event), username: petname.Generate(3, "-")}
+// ALWAYS MAKE SURE CLIENT HAS LOBBY BEFORE DOING ANYTHING
+func newClient(conn *websocket.Conn) *Client {
+	return &Client{conn: conn, lobbyEvents: make(chan Event), lobby: nil, clientEvents: make(chan Event), username: petname.Generate(3, "-")}
 }
 
 // at most one reader on a connection by executing all reads on this goroutine
-func (c *Client) readRoutine() {
+func (c *Client) readRoutine() error {
+	if (c.lobby == nil) {
+		return errors.New("Lobby is not set")
+	}
+
 	log.Println("Starting read routine")
 	defer func() {
 		log.Println("Read routine, closing conn")
@@ -67,6 +73,8 @@ func (c *Client) readRoutine() {
 
 		c.parseEvent(event)
 	}
+
+	return nil
 }
 
 func (c *Client) parseEvent(event *Event) {
@@ -77,7 +85,11 @@ func (c *Client) parseEvent(event *Event) {
 	}
 }
 
-func (c *Client) writeRoutine() {
+func (c *Client) writeRoutine() error {
+	if (c.lobby == nil) {
+		return errors.New("Lobby is not set")
+	}
+
 	log.Println("Starting write routine")
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -91,14 +103,14 @@ func (c *Client) writeRoutine() {
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				log.Printf("Failure to write message %v", err)
-				return
+				return err
 			}
 		case event := <- c.clientEvents:
 			if (event.Type == LobbyInfo) {
 				w, err := c.conn.NextWriter(websocket.TextMessage)
 				if err != nil {
 					log.Printf("Error obtaining writer: %v", err)
-					return
+					return err
 				}
 
 				msg, err := json.Marshal(event)
@@ -110,7 +122,7 @@ func (c *Client) writeRoutine() {
 
 				if err = w.Close(); err != nil {
 					log.Printf("Unable to close writer: %v", err)
-					return
+					return err
 				}
 			}
 		}
