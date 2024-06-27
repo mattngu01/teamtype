@@ -1,4 +1,4 @@
-package main
+package backend
 
 // https://github.com/gorilla/websocket/tree/main/examples/chat
 
@@ -10,10 +10,10 @@ import (
 )
 
 type LobbyManager struct {
-	lobbies map[ksuid.KSUID]*Lobby
+	Lobbies map[ksuid.KSUID]*Lobby
 }
 
-func serveWs(w http.ResponseWriter, r *http.Request, lm *LobbyManager) {
+func ServeWs(w http.ResponseWriter, r *http.Request, lm *LobbyManager) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
@@ -26,7 +26,7 @@ func serveWs(w http.ResponseWriter, r *http.Request, lm *LobbyManager) {
 	lobby := newLobby(client)
 	client.lobby = lobby
 	go lobby.run()
-	lm.lobbies[lobby.id] = lobby
+	lm.Lobbies[lobby.id] = lobby
 	log.Println("Created client & lobby")
 
 	go client.readRoutine()

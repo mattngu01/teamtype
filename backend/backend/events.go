@@ -1,4 +1,4 @@
-package main
+package backend
 
 const (
 	LobbyInfo = "LobbyInfo"
