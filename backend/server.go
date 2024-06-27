@@ -15,9 +15,7 @@ func main() {
 	log.Println("Starting up server")
 	lm := &backend.LobbyManager{make(map[ksuid.KSUID]*backend.Lobby)}
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		backend.ServeWs(w, r, lm)
-	})
+	http.HandleFunc("/ws", lm.ServeWs)
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

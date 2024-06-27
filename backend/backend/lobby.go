@@ -13,7 +13,7 @@ type LobbyManager struct {
 	Lobbies map[ksuid.KSUID]*Lobby
 }
 
-func ServeWs(w http.ResponseWriter, r *http.Request, lm *LobbyManager) {
+func (lm *LobbyManager) ServeWs(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
