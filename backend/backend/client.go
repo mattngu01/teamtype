@@ -85,6 +85,34 @@ func (c *Client) parseEvent(event *Event) {
 	}
 }
 
+func (c *Client) writeMessage(event Event) error {
+	w, err := c.conn.NextWriter(websocket.TextMessage)
+	if err != nil {
+		log.Printf("Error obtaining writer: %v", err)
+		return err
+	}
+
+	msg, err := json.Marshal(event)
+	if err != nil {
+		log.Printf("Unable to marshal message: %v", err)
+		return err
+	}
+
+	_, err = w.Write(msg)
+
+	if err != nil {
+		log.Printf("Failed sending msg: %v", err)
+		return err
+	}
+
+	if err = w.Close(); err != nil {
+		log.Printf("Unable to close writer: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func (c *Client) writeRoutine() error {
 	if (c.lobby == nil) {
 		return errors.New("Lobby is not set")
@@ -106,25 +134,7 @@ func (c *Client) writeRoutine() error {
 				return err
 			}
 		case event := <- c.clientEvents:
-			if (event.Type == LobbyInfo) {
-				w, err := c.conn.NextWriter(websocket.TextMessage)
-				if err != nil {
-					log.Printf("Error obtaining writer: %v", err)
-					return err
-				}
-
-				msg, err := json.Marshal(event)
-				if err != nil {
-					log.Printf("Unable to marshal message: %v", err)
-					break
-				}
-				w.Write(msg)
-
-				if err = w.Close(); err != nil {
-					log.Printf("Unable to close writer: %v", err)
-					return err
-				}
-			}
+			c.writeMessage(event)
 		}
 	}
 }
