@@ -26,6 +26,7 @@ export default defineComponent({
 	},
 	computed: {
 		quoteArray(): string[] {
+			// \s is any single whitespace
 			return this.quote.split(/(?<=\s)/);
 		}
 	},
