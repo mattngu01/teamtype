@@ -30,7 +30,7 @@ func newWSServer(t *testing.T, h http.Handler) (*httptest.Server, *websocket.Con
 	return s, ws
 }
 
-func sendMessage(t *testing.T, ws *websocket.Conn, msg Event) {
+func sendMessage(t *testing.T, ws *websocket.Conn, msg FrontendEvent) {
 	t.Helper()
 
 	m, err := json.Marshal(msg)
@@ -43,7 +43,7 @@ func sendMessage(t *testing.T, ws *websocket.Conn, msg Event) {
 	}
 }
 
-func receiveWSMessage(t *testing.T, ws *websocket.Conn) Event {
+func receiveWSMessage(t *testing.T, ws *websocket.Conn) FrontendEvent {
 	t.Helper()
 
 	_, m, err := ws.ReadMessage()
@@ -51,7 +51,7 @@ func receiveWSMessage(t *testing.T, ws *websocket.Conn) Event {
 		t.Fatalf("%v", err)
 	}
 
-	var reply Event
+	var reply FrontendEvent
 	err = json.Unmarshal(m, &reply)
 	if err != nil {
 		t.Fatal(err)
@@ -96,7 +96,7 @@ func TestRespondJoinLobbyWithLobbyInfo(t *testing.T) {
 	defer server.Close()
 	defer frontendWebsocket.Close()
 
-	joinLobbyRequest := Event{
+	joinLobbyRequest := FrontendEvent{
 		Type: JoinLobby,
 		Data: JoinLobbyData{
 			Username: "test_user",
@@ -112,7 +112,7 @@ func TestRespondJoinLobbyWithLobbyInfo(t *testing.T) {
 		t.Fatalf("Could not read message from websocket %s", err)
 	}
 
-	lobbyInfoResponse := Event{}
+	lobbyInfoResponse := FrontendEvent{}
 	err = json.Unmarshal(resp, &lobbyInfoResponse)
 
 	if err != nil {

@@ -5,8 +5,8 @@ const (
 	JoinLobby = "JoinLobby"
 )
 
-// Representation of data passed from backend / frontend
-type Event struct {
+// Representation of data passed from frontend -> backend
+type FrontendEvent struct {
 	Type string `json:"type"`
 	Data any    `json:"data"`
 }

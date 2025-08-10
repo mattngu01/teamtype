@@ -33,15 +33,15 @@ var upgrader = websocket.Upgrader{
 // acts as middleman between frontend websocket and a Lobby
 type Client struct {
 	conn         *websocket.Conn
-	lobbyEvents  chan Event //channel to pass events from client to lobby, where it maintains game state
+	lobbyEvents  chan FrontendEvent //channel to pass events from client to lobby, where it maintains game state
 	lobby        *Lobby
-	clientEvents chan Event //channel to pass events from writer & reader goroutines, skipping Lobby when not needed
-	username     string     //usernames unique per lobby
+	clientEvents chan FrontendEvent //channel to pass events from writer & reader goroutines, skipping Lobby when not needed
+	username     string             //usernames unique per lobby
 }
 
 // ALWAYS MAKE SURE CLIENT HAS LOBBY BEFORE DOING ANYTHING
 func newClient(conn *websocket.Conn) *Client {
-	return &Client{conn: conn, lobbyEvents: make(chan Event), lobby: nil, clientEvents: make(chan Event), username: petname.Generate(3, "-")}
+	return &Client{conn: conn, lobbyEvents: make(chan FrontendEvent), lobby: nil, clientEvents: make(chan FrontendEvent), username: petname.Generate(3, "-")}
 }
 
 // at most one reader on a connection by executing all reads on this goroutine
@@ -66,7 +66,7 @@ func (c *Client) readRoutine() error {
 			}
 			break
 		}
-		event := &Event{}
+		event := &FrontendEvent{}
 		if err = json.Unmarshal(message, event); err != nil {
 			log.Printf("Unable to unmarshal msg: %v", err)
 		}
@@ -77,11 +77,11 @@ func (c *Client) readRoutine() error {
 	return nil
 }
 
-func (c *Client) parseEvent(event *Event) {
+func (c *Client) parseEvent(event *FrontendEvent) {
 	log.Printf("Parsing event: %v", event)
 	switch event.Type {
 	case JoinLobby:
-		responseEvent := Event{
+		responseEvent := FrontendEvent{
 			Type: LobbyInfo,
 			Data: LobbyInfoData{
 				LobbyId: c.lobby.id.String(),
@@ -92,7 +92,7 @@ func (c *Client) parseEvent(event *Event) {
 	}
 }
 
-func (c *Client) writeMessage(event Event) error {
+func (c *Client) writeMessage(event FrontendEvent) error {
 	w, err := c.conn.NextWriter(websocket.TextMessage)
 	if err != nil {
 		log.Printf("Error obtaining writer: %v", err)
