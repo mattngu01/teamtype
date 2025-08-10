@@ -32,11 +32,11 @@ var upgrader = websocket.Upgrader{
 
 // acts as middleman between frontend websocket and a Lobby
 type Client struct {
-	conn *websocket.Conn
+	conn         *websocket.Conn
 	lobbyEvents  chan Event //channel to pass events from client to lobby, where it maintains game state
-	lobby  *Lobby
+	lobby        *Lobby
 	clientEvents chan Event //channel to pass events from writer & reader goroutines, skipping Lobby when not needed
-	username string //usernames unique per lobby
+	username     string     //usernames unique per lobby
 }
 
 // ALWAYS MAKE SURE CLIENT HAS LOBBY BEFORE DOING ANYTHING
@@ -46,7 +46,7 @@ func newClient(conn *websocket.Conn) *Client {
 
 // at most one reader on a connection by executing all reads on this goroutine
 func (c *Client) readRoutine() error {
-	if (c.lobby == nil) {
+	if c.lobby == nil {
 		return errors.New("Lobby is not set")
 	}
 
@@ -114,7 +114,7 @@ func (c *Client) writeMessage(event Event) error {
 }
 
 func (c *Client) writeRoutine() error {
-	if (c.lobby == nil) {
+	if c.lobby == nil {
 		return errors.New("Lobby is not set")
 	}
 
@@ -133,7 +133,7 @@ func (c *Client) writeRoutine() error {
 				log.Printf("Failure to write message %v", err)
 				return err
 			}
-		case event := <- c.clientEvents:
+		case event := <-c.clientEvents:
 			c.writeMessage(event)
 		}
 	}

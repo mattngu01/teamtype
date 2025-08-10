@@ -67,6 +67,7 @@ func getQuote() string {
 }
 
 func (l *Lobby) run() {
+	log.Println("Starting lobby", l.id)
 	for {
 		if len(l.clients) == 0 {
 			log.Println("Killing lobby routine, 0 clients")

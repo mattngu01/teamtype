@@ -6,6 +6,6 @@ const (
 
 // Representation of data passed from backend / frontend
 type Event struct {
-	Type string `json:"type"`
+	Type string                 `json:"type"`
 	Data map[string]interface{} `json:"data"`
 }
