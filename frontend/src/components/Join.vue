@@ -27,7 +27,7 @@ export default defineComponent({
 	methods: {
 		connectWebsocket() {
 			this.socket = new WebSocket("ws://localhost:8080/ws");
-			this.socket.onopen = function (event: any) {
+			this.socket.onopen = (event: any) => {
 				console.log("Connected to server", event);
 				this.socket.send(JSON.stringify({ "type": "LobbyInfo" }));
 			}
