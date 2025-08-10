@@ -22,6 +22,7 @@ export default defineComponent({
 		}
 	},
 	mounted() {
+		this.connectWebsocket();
 	},
 	methods: {
 		connectWebsocket() {
