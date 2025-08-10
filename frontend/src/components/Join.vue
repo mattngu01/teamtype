@@ -1,13 +1,20 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
+import randomName from '@scaleway/random-name';
 
 interface LobbyInfoMsg {
 	type: "LobbyInfo";
 	data: {
 		lobbyId: string;
-		username: string;
 		players: string[];
 	};
+}
+
+interface JoinLobbyMsg {
+	type: "JoinLobby";
+	data: {
+		username: string;
+	}
 }
 
 export default defineComponent({
@@ -29,7 +36,10 @@ export default defineComponent({
 			this.socket = new WebSocket("ws://localhost:8080/ws");
 			this.socket.onopen = (event: any) => {
 				console.log("Connected to server", event);
-				this.socket.send(JSON.stringify({ "type": "LobbyInfo" }));
+				this.username = randomName();
+				this.socket.send(JSON.stringify(
+					{ "type": "JoinLobby", "data": { "username": this.username } }
+				));
 			}
 			this.socket.onmessage = this.parseMessage;
 
@@ -48,7 +58,6 @@ export default defineComponent({
 				let eventPayload = JSON.parse(event.data) as LobbyInfoMsg;
 				if (eventPayload["type"] == "LobbyInfo") {
 					this.lobbyId = eventPayload.data.lobbyId;
-					this.username = eventPayload.data.username;
 					this.players = eventPayload.data.players;
 				}
 			} catch (error) {

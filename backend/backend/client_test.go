@@ -89,3 +89,41 @@ func TestWriteRoutineExitWithoutLobby(t *testing.T) {
 		t.Errorf("Read routine should have thrown error when lobby is not set")
 	}
 }
+
+func TestRespondJoinLobbyWithLobbyInfo(t *testing.T) {
+	lm := &LobbyManager{make(map[ksuid.KSUID]*Lobby)}
+	server, frontendWebsocket := newWSServer(t, http.HandlerFunc(lm.ServeWs))
+	defer server.Close()
+	defer frontendWebsocket.Close()
+
+	joinLobbyRequest := Event{
+		Type: JoinLobby,
+		Data: JoinLobbyData{
+			Username: "test_user",
+		},
+	}
+	jsonJoinLobbyRequest, _ := json.Marshal(joinLobbyRequest)
+	// want to send request to server, for join lobby
+	if err := frontendWebsocket.WriteMessage(websocket.TextMessage, jsonJoinLobbyRequest); err != nil {
+		t.Fatalf("Unable to send message through websocket %s", err)
+	}
+	_, resp, err := frontendWebsocket.ReadMessage()
+	if err != nil {
+		t.Fatalf("Could not read message from websocket %s", err)
+	}
+
+	lobbyInfoResponse := Event{}
+	err = json.Unmarshal(resp, &lobbyInfoResponse)
+
+	if err != nil {
+		t.Fatalf("Could not unmarshal server response %s", err)
+	}
+
+	if lobbyInfoResponse.Type != LobbyInfo {
+		t.Fatalf("Response was not type Lobby Info")
+	}
+
+	// if lobbyInfoResponse.Data.Players[0] != "test_user" {
+	// 	t.Fatalf("Response did not include client in lobby")
+	// }
+}

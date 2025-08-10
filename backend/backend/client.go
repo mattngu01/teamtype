@@ -80,8 +80,15 @@ func (c *Client) readRoutine() error {
 func (c *Client) parseEvent(event *Event) {
 	log.Printf("Parsing event: %v", event)
 	switch event.Type {
-	case LobbyInfo:
-		c.clientEvents <- Event{Type: LobbyInfo, Data: map[string]interface{}{"lobbyId": c.lobby.id.String(), "username": c.username, "players": c.lobby.getPlayerUsers()}}
+	case JoinLobby:
+		responseEvent := Event{
+			Type: LobbyInfo,
+			Data: LobbyInfoData{
+				LobbyId: c.lobby.id.String(),
+				Players: c.lobby.getPlayerUsers(),
+			},
+		}
+		c.clientEvents <- responseEvent
 	}
 }
 
